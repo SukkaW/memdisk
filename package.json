@@ -2,6 +2,11 @@
   "name": "memdisk",
   "version": "0.0.1-beta.1",
   "description": "",
+  "homepage": "https://github.com/SukkaW/memdisk",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SukkaW/memdisk.git"
+  },
   "main": "./dist/index.cjs",
   "bin": "./dist/cli.js",
   "files": [
@@ -17,11 +22,11 @@
   },
   "scripts": {
     "lint": "eslint --format=sukka .",
-    "build": "bunchee -m --format umd",
+    "build": "bunchee -m",
     "release": "bumpp -r --all --commit \"release: %s\" --tag \"%s\""
   },
   "keywords": [],
-  "author": "",
+  "author": "SukkaW <https://skk.moe>",
   "license": "MIT",
   "dependencies": {
     "@jsdevtools/ez-spawn": "^3.0.4",
