@@ -1,6 +1,6 @@
 {
   "name": "memdisk",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "",
   "main": "./dist/index.cjs",
   "bin": "./dist/cli.js",
@@ -16,6 +16,7 @@
     "./package.json": "./package.json"
   },
   "scripts": {
+    "lint": "eslint --format=sukka .",
     "build": "bunchee -m --format umd",
     "release": "bumpp -r --all --commit \"release: %s\" --tag \"%s\""
   },
