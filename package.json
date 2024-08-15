@@ -8,6 +8,7 @@
     "url": "git+https://github.com/SukkaW/memdisk.git"
   },
   "main": "./dist/index.cjs",
+  "types": "./dist/index.d.ts",
   "bin": "./dist/cli.js",
   "files": [
     "dist"
