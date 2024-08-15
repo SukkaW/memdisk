@@ -105,7 +105,7 @@ export type DestroyOptions = CreateOptions;
 
 export const destroy = gensync(function *(root: string, {
   quiet = true,
-  throwOnNotSupportedPlatform
+  throwOnNotSupportedPlatform = false
 }: DestroyOptions = {}) {
   const logger = getLogger(quiet);
 
