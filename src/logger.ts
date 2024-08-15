@@ -1,3 +1,4 @@
+/* eslint-disable no-console -- logger */
 import { yellow, red, blue } from 'picocolors';
 
 const noop = () => {
@@ -5,13 +6,13 @@ const noop = () => {
 };
 
 export interface Logger {
-  warn: (...messages: any[]) => void,
-  error: (...messages: any[]) => void,
-  info: (...messages: any[]) => void
+  warn: (...messages: unknown[]) => void,
+  error: (...messages: unknown[]) => void,
+  info: (...messages: unknown[]) => void
 }
 
 export const getLogger = (quiet = false): Logger => ({
-  warn: quiet ? noop : (...messages: any[]) => console.warn(yellow('WARN') + ' ', ...messages),
-  error: quiet ? noop : (...messages: any[]) => console.error(red('ERROR') + ' ', ...messages),
-  info: quiet ? noop : (...messages: any[]) => console.info(blue('INFO') + ' ', ...messages)
+  warn: quiet ? noop : (...messages: unknown[]) => console.warn(yellow('WARN') + ' ', ...messages),
+  error: quiet ? noop : (...messages: unknown[]) => console.error(red('ERROR') + ' ', ...messages),
+  info: quiet ? noop : (...messages: unknown[]) => console.info(blue('INFO') + ' ', ...messages)
 });
