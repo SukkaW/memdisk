@@ -4,6 +4,9 @@
   "description": "",
   "main": "./dist/index.cjs",
   "bin": "./dist/cli.js",
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -19,12 +22,19 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
+  "dependencies": {
+    "@jsdevtools/ez-spawn": "^3.0.4",
+    "cac": "^6.7.14",
+    "gensync": "1.0.0-beta.2",
+    "which": "^4.0.0"
+  },
   "devDependencies": {
     "@eslint-sukka/node": "^6.1.4",
+    "@types/gensync": "^1.0.4",
     "@types/node": "^20.14.10",
+    "@types/which": "^3.0.4",
     "bumpp": "^9.4.1",
     "bunchee": "^5.2.2",
-    "cac": "^6.7.14",
     "eslint": "^9.7.0",
     "eslint-config-sukka": "^6.1.4",
     "eslint-formatter-sukka": "^6.1.4",
