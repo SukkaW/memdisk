@@ -11,6 +11,9 @@ importers:
       '@jsdevtools/ez-spawn':
         specifier: ^3.0.4
         version: 3.0.4
+      '@types/gensync':
+        specifier: ^1.0.4
+        version: 1.0.4
       commander:
         specifier: ^12.1.0
         version: 12.1.0
@@ -27,9 +30,6 @@ importers:
       '@eslint-sukka/node':
         specifier: ^6.1.4
         version: 6.1.4(eslint@9.7.0)(typescript@5.5.3)
-      '@types/gensync':
-        specifier: ^1.0.4
-        version: 1.0.4
       '@types/node':
         specifier: ^20.14.10
         version: 20.14.10
