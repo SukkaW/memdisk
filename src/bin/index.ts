@@ -9,15 +9,15 @@ import { cwd } from 'process';
   program
     .name(packageJson.name)
     .version(packageJson.version)
-    .description('CLI to create and destroy ramdisks')
+    .description('CLI to create and destroy RAM disks')
     .option('--silent, --quiet', 'Disable messages', false)
-    .option('--throw-on-not-supported-platform', 'Throw an error if the current platform doesn\'t support ramdisks', true);
+    .option('--throw-on-not-supported-platform', 'Throw an error if the current platform doesn\'t support RAM disks', true);
 
   program
     .command('create')
-    .description('Create a ramdisk with size and disk name')
-    .argument('<size>', 'Size of the ramdisk, accepts number or string with unit (e.g. 16mb, 128m, 1G, 4g, etc.)')
-    .argument('[name]', 'Name of the ramdisk, default is "ramdisk"', 'ramdisk')
+    .description('Create a RAM disk with size and disk name')
+    .argument('<size>', 'Size of the RAM disk, accepts number or string with unit (e.g. 16mb, 128m, 1G, 4g, etc.)')
+    .argument('[name]', 'Name of the RAM disk, default is "ramdisk"', 'ramdisk')
     .action((inputSize: string, name: string) => {
       const size = parseHumanReadableSize(inputSize);
 
@@ -31,13 +31,13 @@ import { cwd } from 'process';
 
   program
     .command('destroy')
-    .description('Destroy a ramdisk with name or path')
-    .argument('[nameOrPath]', 'Name or path of the ramdisk (if argument is not an absolute path, it will be treated as a name), default is "ramdisk"', 'ramdisk')
+    .description('Destroy a RAM disk with name or path')
+    .argument('[nameOrPath]', 'Name or path of the RAM disk (if argument is not an absolute path, it will be treated as a name), default is "ramdisk"', 'ramdisk')
     .action((nameOrPath: string) => {
       const path = isAbsolute(nameOrPath) ? nameOrPath : getRootFromName(nameOrPath);
 
       if (isInSubDirectory(path, cwd())) {
-        throw new Error('Cannot destroy the ramdisk because the current working directory is in the ramdisk');
+        throw new Error('Cannot perform destroy as the current working directory is in the RAM disk to be destroyed');
       }
 
       const { quiet, throwOnNotSupportedPlatform } = program.opts();

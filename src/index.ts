@@ -25,7 +25,7 @@ const init = gensync(function *(darwinBlocks: number, linuxRoot: string, logger:
       linux: yield *withSudo(`mkdir -p ${linuxRoot}`)
     };
 
-    logger.info('Initializing RAMdisk. You may be prompted for credentials');
+    logger.info('Initializing RAM disk. You may be prompted for credentials');
     const diskPath = (yield *ezspawn(commands[platform])).stdout;
     return diskPath.trim();
   }
@@ -35,11 +35,11 @@ const init = gensync(function *(darwinBlocks: number, linuxRoot: string, logger:
 
 const mount = gensync(function *(bytes: number, diskPath: string, darwinName: string, linuxRoot: string, logger: Logger) {
   if (platform === 'darwin') {
-    logger.info('Mouting RAMdisk. You may be prompted for credentials');
+    logger.info('Mouting RAM disk. You may be prompted for credentials');
     return yield *ezspawn(`diskutil erasevolume HFS+ ${darwinName} ${diskPath}`);
   }
   if (platform === 'linux') {
-    logger.info('Mouting RAMdisk. You may be prompted for credentials');
+    logger.info('Mouting RAM disk. You may be prompted for credentials');
     return yield *ezspawn(yield *withSudo(`mount -t tmpfs -o size=${bytes} tmpfs ${linuxRoot}`));
   }
 
@@ -75,7 +75,7 @@ export const create = gensync(function *(name: string, bytes: number, {
       const diskPath = yield *init(darwinBlocks, root, logger);
       yield *mount(bytes, diskPath, name, root, logger);
 
-      logger.info(`RAMdisk is avaliable at ${root}`);
+      logger.info(`RAM disk is avaliable at ${root}`);
     } else {
       logger.warn(`The path "${root}" already exists, skipping creation`);
     }
@@ -87,9 +87,9 @@ export const create = gensync(function *(name: string, bytes: number, {
     throw new Error(`Unsupported platform "${platform}"`);
   }
 
-  const root = path.join(tmpdir(), '.mocked-ramdisk', name);
+  const root = path.join(tmpdir(), '.mocked-memdisk', name);
 
-  logger.warn(`The current platform "${platform}" does not support RAMdisks. A temporary directory (which may or may not exists in the RAM) is created at "${root}".`);
+  logger.warn(`The current platform "${platform}" does not support RAM disks. A temporary directory (which may or may not exists in the RAM) is created at "${root}".`);
 
   yield *mkdir(root, { recursive: true });
 
@@ -115,7 +115,7 @@ export const destroy = gensync(function *(root: string, {
       linux: yield *withSudo(`umount ${root}`)
     };
 
-    logger.info(`Unmouting RAMdisk at ${root}. You may be prompted for credentials`);
+    logger.info(`Unmouting RAM disk at ${root}. You may be prompted for credentials`);
 
     yield *ezspawn(commands[platform]);
 
@@ -129,9 +129,9 @@ export const destroy = gensync(function *(root: string, {
   try {
     yield *rm(root, { recursive: true, force: true });
 
-    logger.warn(`Current platform "${platform}" does not support RAMdisks, attempted to remove the directory "${root}" and successed.`);
+    logger.warn(`Current platform "${platform}" does not support RAM disks, attempted to remove the directory "${root}" and successed.`);
   } catch (e) {
-    let message = `Current platform "${platform}" does not support RAMdisks, attempted to remove the directory "${root}" but failed`;
+    let message = `Current platform "${platform}" does not support RAM disks, attempted to remove the directory "${root}" but failed`;
     if (typeof e === 'object' && e) {
       if (
         'code' in e
