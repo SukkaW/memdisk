@@ -78,3 +78,21 @@ export const isInSubDirectory = (parent: string, child: string) => {
   const relativePath = relative(parent, child);
   return relativePath.length > 0 && !relativePath.startsWith('..') && !isAbsolute(relativePath);
 };
+
+export const extractErrorMessage = (e: unknown) => {
+  let message = '';
+
+  if (typeof e === 'object' && e) {
+    if ('name' in e && typeof e.name === 'string') {
+      message += e.name;
+    }
+    if ('code' in e && typeof e.code === 'string') {
+      message += ' ' + e.code;
+    }
+    if ('message' in e && typeof e.message === 'string') {
+      message += ' ' + e.message;
+    }
+  }
+
+  return message;
+};

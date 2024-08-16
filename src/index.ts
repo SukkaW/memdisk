@@ -10,7 +10,7 @@ import { platform } from 'process';
 import { tmpdir } from 'os';
 import gensync from 'gensync';
 
-import { getRootFromName, withSudo } from './utils';
+import { extractErrorMessage, getRootFromName, withSudo } from './utils';
 import { getLogger, type Logger } from './logger';
 
 const ezspawn = gensync<[string], ezSpawn.Process>({
@@ -80,17 +80,7 @@ const op = (logger: Logger) => ({
         yield *rm(root, { recursive: true, force: true });
         logger.warn(`${tipPrefix} and successed.`);
       } catch (e) {
-        let message = `${tipPrefix} but failed`;
-        if (typeof e === 'object' && e) {
-          if ('code' in e && typeof e.code === 'string') {
-            message += ' ' + e.code;
-          }
-          if ('message' in e && typeof e.message === 'string') {
-            message += ' ' + e.message;
-          }
-        }
-
-        logger.warn(message);
+        logger.warn(`${tipPrefix} but failed` + extractErrorMessage(e));
       }
     })
   }
@@ -109,34 +99,6 @@ const abortNotSupported = (shouldThrow: boolean) => {
   }
 };
 
-const $create = gensync(function *(name: string, bytes: number, {
-  quiet = true,
-  throwOnNotSupportedPlatform = false
-}: CreateOptions = {}) {
-  const logger = getLogger(quiet);
-
-  if (isSupportedPlatform(platform)) {
-    const root = getRootFromName(name);
-
-    if (existsSync(root)) {
-      logger.warn(`The path "${root}" already exists, skipping creation`);
-      return root;
-    }
-
-    yield *op(logger)[platform].create(name, root, bytes);
-
-    logger.info(`RAM disk is avaliable at ${root}`);
-
-    return root;
-  }
-
-  abortNotSupported(throwOnNotSupportedPlatform);
-
-  const root = path.join(tmpdir(), '.mocked-memdisk', name);
-  yield *op(logger)[$notSupported].create(name, root, bytes);
-  return root;
-});
-
 export type DestroyOptions = CreateOptions;
 
 const $destroy = gensync(function *(root: string, {
@@ -153,6 +115,46 @@ const $destroy = gensync(function *(root: string, {
   abortNotSupported(throwOnNotSupportedPlatform);
 
   yield *op(logger)[$notSupported].destroy(root);
+});
+
+const $create = gensync(function *(name: string, bytes: number, {
+  quiet = true,
+  throwOnNotSupportedPlatform = false
+}: CreateOptions = {}) {
+  const logger = getLogger(quiet);
+
+  let root = getRootFromName(name);
+
+  try {
+    if (isSupportedPlatform(platform)) {
+      if (existsSync(root)) {
+        logger.warn(`The path "${root}" already exists, skipping creation`);
+        return root;
+      }
+
+      yield *op(logger)[platform].create(name, root, bytes);
+
+      logger.info(`RAM disk is avaliable at ${root}`);
+
+      return root;
+    }
+
+    abortNotSupported(throwOnNotSupportedPlatform);
+
+    root = path.join(tmpdir(), '.mocked-memdisk', name);
+    yield *op(logger)[$notSupported].create(name, root, bytes);
+    return root;
+  } catch {
+    const errMessage = `Failed to create RAM disk at ${root}`;
+
+    if (existsSync(root)) {
+      logger.error(`${errMessage}, clean it up`);
+
+      yield *$destroy(root, { quiet, throwOnNotSupportedPlatform });
+    }
+
+    throw new Error(errMessage);
+  }
 });
 
 type ErrorBack<R, E = unknown> = [R] extends [void] ? (err: E) => void : (err: E, result: R) => void;
