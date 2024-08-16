@@ -109,7 +109,7 @@ const abortNotSupported = (shouldThrow: boolean) => {
   }
 };
 
-export const create = gensync(function *(name: string, bytes: number, {
+const $create = gensync(function *(name: string, bytes: number, {
   quiet = true,
   throwOnNotSupportedPlatform = false
 }: CreateOptions = {}) {
@@ -139,7 +139,7 @@ export const create = gensync(function *(name: string, bytes: number, {
 
 export type DestroyOptions = CreateOptions;
 
-export const destroy = gensync(function *(root: string, {
+const $destroy = gensync(function *(root: string, {
   quiet = true,
   throwOnNotSupportedPlatform = false
 }: DestroyOptions = {}) {
@@ -154,3 +154,29 @@ export const destroy = gensync(function *(root: string, {
 
   yield *op(logger)[$notSupported].destroy(root);
 });
+
+type ErrorBack<T extends unknown[]> = (err: unknown, ...args: T) => void;
+
+interface Create {
+  sync: (name: string, bytes: number, options?: CreateOptions) => string,
+  async: (name: string, bytes: number, options?: CreateOptions) => Promise<string>,
+  errback: (name: string, bytes: number, options: CreateOptions | undefined, callback: ErrorBack<[string]>) => void
+}
+
+export const create: Create = {
+  sync: (...args) => $create.sync.apply(null, args),
+  async: (...args) => $create.async.apply(null, args),
+  errback: (...args) => $create.errback.apply(null, args)
+};
+
+interface Destroy {
+  sync: (root: string, options?: DestroyOptions) => void,
+  async: (root: string, options?: DestroyOptions) => Promise<void>,
+  errback: (root: string, options: DestroyOptions | undefined, callback: ErrorBack<[]>) => void
+}
+
+export const destroy: Destroy = {
+  sync: (...args) => $destroy.sync.apply(null, args),
+  async: (...args) => $destroy.async.apply(null, args),
+  errback: (...args) => $destroy.errback.apply(null, args)
+};

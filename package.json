@@ -31,7 +31,6 @@
   "license": "MIT",
   "dependencies": {
     "@jsdevtools/ez-spawn": "^3.0.4",
-    "@types/gensync": "^1.0.4",
     "gensync": "1.0.0-beta.2",
     "picocolors": "^1.0.1",
     "which": "^4.0.0"
@@ -39,6 +38,7 @@
   "devDependencies": {
     "@commander-js/extra-typings": "^12.1.0",
     "@eslint-sukka/node": "^6.1.10",
+    "@types/gensync": "^1.0.4",
     "@types/node": "^20.14.15",
     "@types/which": "^3.0.4",
     "bumpp": "^9.5.1",
