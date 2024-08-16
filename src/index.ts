@@ -155,12 +155,12 @@ const $destroy = gensync(function *(root: string, {
   yield *op(logger)[$notSupported].destroy(root);
 });
 
-type ErrorBack<T extends unknown[]> = (err: unknown, ...args: T) => void;
+type ErrorBack<R, E = unknown> = [R] extends [void] ? (err: E) => void : (err: E, result: R) => void;
 
 interface Create {
   sync: (name: string, bytes: number, options?: CreateOptions) => string,
   async: (name: string, bytes: number, options?: CreateOptions) => Promise<string>,
-  errback: (name: string, bytes: number, options: CreateOptions | undefined, callback: ErrorBack<[string]>) => void
+  errback: (name: string, bytes: number, options: CreateOptions | undefined, callback: ErrorBack<string>) => void
 }
 
 export const create: Create = {
@@ -172,7 +172,7 @@ export const create: Create = {
 interface Destroy {
   sync: (root: string, options?: DestroyOptions) => void,
   async: (root: string, options?: DestroyOptions) => Promise<void>,
-  errback: (root: string, options: DestroyOptions | undefined, callback: ErrorBack<[]>) => void
+  errback: (root: string, options: DestroyOptions | undefined, callback: ErrorBack<void>) => void
 }
 
 export const destroy: Destroy = {
