@@ -1,4 +1,4 @@
-import { program } from 'commander';
+import { Command } from '@commander-js/extra-typings';
 import packageJson from '../../package.json';
 import { getRootFromName, isInSubDirectory, parseHumanReadableSize } from '../utils';
 import { isAbsolute } from 'path';
@@ -6,11 +6,11 @@ import { create, destroy } from '..';
 import { cwd } from 'process';
 
 (() => {
-  program
-    .name(packageJson.name)
+  const program = (new Command(packageJson.name))
     .version(packageJson.version)
     .description('CLI to create and destroy RAM disks')
     .option('--silent, --quiet', 'Disable messages', false)
+    .option('--no-throw-on-not-supported-platform', 'Do not throw an error if the current platform doesn\'t support RAM disks', false)
     .option('--throw-on-not-supported-platform', 'Throw an error if the current platform doesn\'t support RAM disks', true);
 
   program
