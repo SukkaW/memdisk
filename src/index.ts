@@ -11,47 +11,19 @@ import { tmpdir } from 'os';
 import gensync from 'gensync';
 
 import { getRootFromName, withSudo } from './utils';
-import { getLogger, type Logger } from './logger';
+import { getLogger } from './logger';
 
 const ezspawn = gensync<[string], ezSpawn.Process>({
   sync: ezspawnSync,
   async: ezspawnAsync
 });
 
-const init = gensync(function *(darwinBlocks: number, linuxRoot: string, logger: Logger) {
-  if (platform === 'darwin' || platform === 'linux') {
-    const commands = {
-      darwin: `hdiutil attach -nomount ram://${darwinBlocks}`,
-      linux: yield *withSudo(`mkdir -p ${linuxRoot}`)
-    };
-
-    logger.info('Initializing RAM disk. You may be prompted for credentials');
-    const diskPath = (yield *ezspawn(commands[platform])).stdout;
-    return diskPath.trim();
-  }
-
-  throw new Error('Unsupported platform!');
-});
-
-const mount = gensync(function *(bytes: number, diskPath: string, darwinName: string, linuxRoot: string, logger: Logger) {
-  if (platform === 'darwin') {
-    logger.info('Mouting RAM disk. You may be prompted for credentials');
-    return yield *ezspawn(`diskutil erasevolume HFS+ ${darwinName} ${diskPath}`);
-  }
-  if (platform === 'linux') {
-    logger.info('Mouting RAM disk. You may be prompted for credentials');
-    return yield *ezspawn(yield *withSudo(`mount -t tmpfs -o size=${bytes} tmpfs ${linuxRoot}`));
-  }
-
-  throw new Error('Unsupported platform!');
-});
+const BLOCK_SIZE = 512;
 
 const mkdir = gensync({
   sync: mkdirSync,
   async: mkdirAsync
 });
-
-const BLOCK_SIZE = 512;
 
 export interface CreateOptions {
   /** @default true */
@@ -69,16 +41,39 @@ export const create = gensync(function *(name: string, bytes: number, {
   if (platform === 'darwin' || platform === 'linux') {
     const root = getRootFromName(name);
 
-    const darwinBlocks = bytes / BLOCK_SIZE;
-
-    if (!existsSync(root)) {
-      const diskPath = yield *init(darwinBlocks, root, logger);
-      yield *mount(bytes, diskPath, name, root, logger);
-
-      logger.info(`RAM disk is avaliable at ${root}`);
-    } else {
+    if (existsSync(root)) {
       logger.warn(`The path "${root}" already exists, skipping creation`);
+      return root;
     }
+
+    const tipInit = 'Initializing RAM disk. You may be prompted for credentials';
+    const tipMount = 'Mouting RAM disk. You may be prompted for credentials';
+
+    switch (platform) {
+      case 'darwin': {
+        const darwinBlocks = bytes / BLOCK_SIZE;
+
+        logger.info(tipInit);
+        const diskPath = (yield *ezspawn(`hdiutil attach -nomount ram://${darwinBlocks}`)).stdout.trim();
+        logger.info(tipMount);
+        yield *ezspawn(`diskutil erasevolume HFS+ ${name} ${diskPath}`);
+
+        break;
+      }
+      case 'linux': {
+        logger.info(tipInit);
+        yield *ezspawn(yield *withSudo(`mkdir -p ${root}`));
+        logger.info(tipMount);
+        yield *ezspawn(yield *withSudo(`mount -t tmpfs -o size=${bytes} tmpfs ${root}`));
+
+        break;
+      }
+      default: {
+        throw new Error('Unsupported platform!');
+      }
+    }
+
+    logger.info(`RAM disk is avaliable at ${root}`);
 
     return root;
   }
@@ -110,39 +105,40 @@ export const destroy = gensync(function *(root: string, {
   const logger = getLogger(quiet);
 
   if (platform === 'darwin' || platform === 'linux') {
-    const commands = {
-      darwin: `hdiutil detach ${root}`,
-      linux: yield *withSudo(`umount ${root}`)
-    };
-
     logger.info(`Unmouting RAM disk at ${root}. You may be prompted for credentials`);
 
-    yield *ezspawn(commands[platform]);
-
-    return;
+    switch (platform) {
+      case 'darwin': {
+        yield *ezspawn(`hdiutil detach ${root}`);
+        return;
+      }
+      case 'linux': {
+        yield *ezspawn(yield *withSudo(`umount ${root}`));
+        return;
+      }
+      default: {
+        throw new Error('Unsupported platform');
+      }
+    }
   }
 
   if (throwOnNotSupportedPlatform) {
     throw new Error(`Unsupported platform "${platform}"`);
   }
 
+  const tipPrefix = `Current platform "${platform}" does not support RAM disks, attempted to remove the directory "${root}"`;
+
   try {
     yield *rm(root, { recursive: true, force: true });
 
-    logger.warn(`Current platform "${platform}" does not support RAM disks, attempted to remove the directory "${root}" and successed.`);
+    logger.warn(`${tipPrefix} and successed.`);
   } catch (e) {
-    let message = `Current platform "${platform}" does not support RAM disks, attempted to remove the directory "${root}" but failed`;
+    let message = `${tipPrefix} but failed`;
     if (typeof e === 'object' && e) {
-      if (
-        'code' in e
-        && typeof e.code === 'string'
-      ) {
+      if ('code' in e && typeof e.code === 'string') {
         message += ' ' + e.code;
       }
-      if (
-        'message' in e
-        && typeof e.message === 'string'
-      ) {
+      if ('message' in e && typeof e.message === 'string') {
         message += ' ' + e.message;
       }
     }

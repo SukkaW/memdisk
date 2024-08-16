@@ -1,7 +1,6 @@
 import whichAsync, { sync as whichSync } from 'which';
 import gensync from 'gensync';
-import { platform, cwd, chdir } from 'process';
-import { statSync } from 'fs';
+import { platform } from 'process';
 import { isAbsolute, relative } from 'path';
 
 let whichSudo: string | undefined | null;
@@ -22,26 +21,6 @@ export const withSudo = gensync(function *(originalCommand: string) {
 
 export const getRootFromName = (name: string) => {
   return platform === 'darwin' ? `/Volumes/${name}` : `/mnt/${name}`;
-};
-
-export const cd = (dir: string) => {
-  try {
-    const curDir = cwd();
-    chdir(dir);
-    process.env.OLDPWD = curDir;
-    return '';
-  } catch {
-    // something went wrong, let's figure out the error
-    let err;
-    try {
-      statSync(dir); // if this succeeds, it must be some sort of file
-      err = 'Failed to cd, not a directory: ' + dir;
-    } catch {
-      err = 'Failed to cd, no such file or directory: ' + dir;
-    }
-
-    return err;
-  }
 };
 
 const rPureNumber = /^\d+$/;
