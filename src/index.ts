@@ -64,7 +64,7 @@ const op = (logger: Logger) => ({
     }),
     destroy: gensync(function *(root: string) {
       logger.info(tips.destroy(root));
-      yield *ezspawn(yield *withSudo(`umount ${root}`));
+      yield *ezspawn(yield *withSudo(`umount --force ${root}`));
     })
   },
   [$notSupported]: {
