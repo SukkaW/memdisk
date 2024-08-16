@@ -26,7 +26,7 @@
     "build": "bunchee -m",
     "release": "bumpp -r --all --commit \"release: %s\" --tag \"%s\""
   },
-  "keywords": [],
+  "keywords": ["ramdisk", "memdisk"],
   "author": "SukkaW <https://skk.moe>",
   "license": "MIT",
   "dependencies": {
