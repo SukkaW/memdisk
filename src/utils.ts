@@ -1,7 +1,7 @@
 import whichAsync, { sync as whichSync } from 'which';
 import gensync from 'gensync';
-import { platform } from 'process';
-import { isAbsolute, relative } from 'path';
+import { platform } from 'node:process';
+import { isAbsolute, relative } from 'node:path';
 
 let whichSudo: string | undefined | null;
 const which = gensync({
@@ -24,13 +24,13 @@ export const getRootFromName = (name: string) => {
 };
 
 const rPureNumber = /^\d+$/;
-const rParse = /(\d+)\s*?([A-Za-z]+)/;
+const rParse = /(\d+)\s*([a-z]+)/i;
 export const parseHumanReadableSize = (input: string) => {
   if (rPureNumber.test(input)) {
     return Number.parseInt(input, 10);
   }
 
-  const matches = input.match(rParse);
+  const matches = rParse.exec(input);
   if (!matches || matches.length < 2) {
     throw new TypeError('Invalid size: ' + input);
   }

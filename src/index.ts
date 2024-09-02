@@ -1,13 +1,13 @@
-import { existsSync, rmSync, mkdirSync } from 'fs';
-import { mkdir as mkdirAsync, rm as rmAsync } from 'fs/promises';
+import { existsSync, rmSync, mkdirSync } from 'node:fs';
+import { mkdir as mkdirAsync, rm as rmAsync } from 'node:fs/promises';
 
-import path from 'path';
+import path from 'node:path';
 
 import { sync as ezspawnSync, async as ezspawnAsync } from '@jsdevtools/ez-spawn';
 import type ezSpawn from '@jsdevtools/ez-spawn';
 
-import { platform } from 'process';
-import { tmpdir } from 'os';
+import { platform } from 'node:process';
+import { tmpdir } from 'node:os';
 import gensync from 'gensync';
 
 import { extractErrorMessage, getRootFromName, withSudo } from './utils';

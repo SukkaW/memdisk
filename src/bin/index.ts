@@ -1,9 +1,9 @@
 import { Command } from '@commander-js/extra-typings';
 import packageJson from '../../package.json';
 import { getRootFromName, isInSubDirectory, parseHumanReadableSize } from '../utils';
-import { isAbsolute } from 'path';
+import { isAbsolute } from 'node:path';
 import { create, destroy } from '..';
-import { cwd } from 'process';
+import { cwd } from 'node:process';
 
 (() => {
   const program = (new Command(packageJson.name))
