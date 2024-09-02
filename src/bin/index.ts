@@ -16,7 +16,7 @@ import { cwd } from 'process';
   program
     .command('create')
     .description('Create a RAM disk with size and disk name')
-    .argument('<size>', 'Size of the RAM disk, accepts number or string with unit (e.g. 16mb, 128m, 1G, 4g, etc.)')
+    .argument('<size>', 'Size of the RAM disk, accepts number or string with unit (e.g. 16mb, 32mib, 128m, 1G, 4g, 8gib, etc.)')
     .argument('[name]', 'Name of the RAM disk, default is "ramdisk"', 'ramdisk')
     .action((inputSize: string, name: string) => {
       const size = parseHumanReadableSize(inputSize);
@@ -33,7 +33,8 @@ import { cwd } from 'process';
     .command('destroy')
     .description('Destroy a RAM disk with name or path')
     .argument('[nameOrPath]', 'Name or path of the RAM disk (if argument is not an absolute path, it will be treated as a name), default is "ramdisk"', 'ramdisk')
-    .action((nameOrPath: string) => {
+    .option('--force', 'Force unmouting and removing the RAM disk', false)
+    .action((nameOrPath: string, { force }) => {
       const path = isAbsolute(nameOrPath) ? nameOrPath : getRootFromName(nameOrPath);
 
       if (isInSubDirectory(path, cwd())) {
@@ -41,7 +42,7 @@ import { cwd } from 'process';
       }
 
       const { quiet, throwOnNotSupportedPlatform } = program.opts();
-      destroy.sync(path, { quiet, throwOnNotSupportedPlatform });
+      destroy.sync(path, { quiet, throwOnNotSupportedPlatform, force });
     });
 
   program

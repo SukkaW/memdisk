@@ -32,7 +32,9 @@ destroy.sync(
     // Throw an error if the platform is not supported.
     // When set to false, a delete operation will be performed on the path.
     // Default to true
-    throwOnNotSupportedPlatform: true
+    throwOnNotSupportedPlatform: true,
+    // Force unmount the RAM disk. Default to true.
+    force: true
   }
 );
 
@@ -86,7 +88,7 @@ Usage: memdisk create [options] <size> [name]
 Create a RAM disk with size and disk name
 
 Arguments:
-  size        Size of the RAM disk, accepts number or string with unit (e.g. 16mb, 128m, 1G, 4g, etc.)
+  size        Size of the RAM disk, accepts number or string with unit (e.g. 16mb, 32mib, 128m, 1G, 4g, 8gib, etc.)
   name        Name of the RAM disk, default is "ramdisk" (default: "ramdisk")
 
 Options:
@@ -94,7 +96,7 @@ Options:
 ```
 
 ```sh
-$ node dist/cli.js destroy --help
+$ memdisk destroy --help
 
 Usage: memdisk destroy [options] [nameOrPath]
 
@@ -104,6 +106,7 @@ Arguments:
   nameOrPath  Name or path of the RAM disk (if argument is not an absolute path, it will be treated as a name), default is "ramdisk" (default: "ramdisk")
 
 Options:
+  --force     Force unmouting and removing the RAM disk (default: false)
   -h, --help  display help for command
 ```
 

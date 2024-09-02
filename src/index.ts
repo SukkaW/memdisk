@@ -48,11 +48,15 @@ const op = (logger: Logger) => ({
       logger.info(tips.init);
       const diskPath = (yield *ezspawn(`hdiutil attach -nomount ram://${darwinBlocks}`)).stdout.trim();
       logger.info(tips.mount);
-      yield *ezspawn(`diskutil erasevolume HFS+ ${name} ${diskPath}`);
+      yield *ezspawn(`diskutil eraseVolume HFS+ ${name} ${diskPath}`);
     }),
-    destroy: gensync(function *(root: string) {
+    destroy: gensync(function *(root: string, force: boolean) {
       logger.info(tips.destroy(root));
-      yield *ezspawn(`hdiutil detach ${root}`);
+      let cmd = `hdiutil detach ${root}`;
+      if (force) {
+        cmd += ' -force';
+      }
+      yield *ezspawn(cmd);
     })
   },
   linux: {
@@ -62,9 +66,12 @@ const op = (logger: Logger) => ({
       logger.info(tips.mount);
       yield *ezspawn(yield *withSudo(`mount -t tmpfs -o size=${bytes} tmpfs ${root}`));
     }),
-    destroy: gensync(function *(root: string) {
+    destroy: gensync(function *(root: string, force: boolean) {
       logger.info(tips.destroy(root));
-      yield *ezspawn(yield *withSudo(`umount --force ${root}`));
+      const cmd = force
+        ? `umount --force ${root}`
+        : `umount ${root}`;
+      yield *ezspawn(yield *withSudo(cmd));
     })
   },
   [$notSupported]: {
@@ -73,7 +80,7 @@ const op = (logger: Logger) => ({
 
       yield *mkdir(root, { recursive: true });
     }),
-    destroy: gensync(function *(root: string) {
+    destroy: gensync(function *(root: string, _force: boolean) {
       const tipPrefix = `Current platform "${platform}" does not support RAM disks, attempted to remove the directory "${root}"`;
 
       try {
@@ -99,22 +106,25 @@ const abortNotSupported = (shouldThrow: boolean) => {
   }
 };
 
-export type DestroyOptions = CreateOptions;
+export interface DestroyOptions extends CreateOptions {
+  force?: boolean
+};
 
 const $destroy = gensync(function *(root: string, {
   quiet = true,
-  throwOnNotSupportedPlatform = false
+  throwOnNotSupportedPlatform = false,
+  force = true
 }: DestroyOptions = {}) {
   const logger = getLogger(quiet);
 
   if (isSupportedPlatform(platform)) {
-    yield *op(logger)[platform].destroy(root);
+    yield *op(logger)[platform].destroy(root, force);
     return;
   }
 
   abortNotSupported(throwOnNotSupportedPlatform);
 
-  yield *op(logger)[$notSupported].destroy(root);
+  yield *op(logger)[$notSupported].destroy(root, force);
 });
 
 const $create = gensync(function *(name: string, bytes: number, {
