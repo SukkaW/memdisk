@@ -18,7 +18,8 @@ import { cwd } from 'node:process';
     .description('Create a RAM disk with size and disk name')
     .argument('<size>', 'Size of the RAM disk, accepts number or string with unit (e.g. 16mb, 32mib, 128m, 1G, 4g, 8gib, etc.)')
     .argument('[name]', 'Name of the RAM disk, default is "ramdisk"', 'ramdisk')
-    .action((inputSize: string, name: string) => {
+    .option('--darwin-use-hfs-plus', 'Use HFS+ instead of APFS on macOS', false)
+    .action((inputSize: string, name: string, { darwinUseHfsPlus: darwinUseHFSPlus }) => {
       const size = parseHumanReadableSize(inputSize);
 
       if (isAbsolute(name)) {
@@ -26,7 +27,7 @@ import { cwd } from 'node:process';
       }
 
       const { quiet, throwOnNotSupportedPlatform } = program.opts();
-      create.sync(name, size, { quiet, throwOnNotSupportedPlatform });
+      create.sync(name, size, { quiet, throwOnNotSupportedPlatform, darwinUseHFSPlus });
     });
 
   program

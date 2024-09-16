@@ -19,7 +19,9 @@ const dir = create.sync(
     // Throw an error if the platform is not supported.
     // When set to false, a temporary folder (which may or may not be a RAM disk) will be created.
     // Default to true
-    throwOnNotSupportedPlatform: true
+    throwOnNotSupportedPlatform: true,
+    // Use HFS+ instead of APFS on macOS. Default to false
+    darwinUseHFSPlus: false,
   }
 ); // Returns the path to the mounted RAM disk
 
@@ -92,6 +94,7 @@ Arguments:
   name        Name of the RAM disk, default is "ramdisk" (default: "ramdisk")
 
 Options:
+  --darwin-use-hfs-plus  Use HFS+ instead of APFS on macOS (default: false)
   -h, --help  display help for command
 ```
 

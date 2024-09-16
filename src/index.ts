@@ -43,12 +43,12 @@ const $notSupported = Symbol('not supported');
 
 const op = (logger: Logger) => ({
   darwin: {
-    create: gensync(function *(name: string, _root: string, bytes: number) {
+    create: gensync(function *(name: string, _root: string, bytes: number, darwinUseHFSPlus: boolean) {
       const darwinBlocks = bytes / BLOCK_SIZE;
       logger.info(tips.init);
       const diskPath = (yield *ezspawn(`hdiutil attach -nomount ram://${darwinBlocks}`)).stdout.trim();
       logger.info(tips.mount);
-      yield *ezspawn(`diskutil eraseVolume HFS+ ${name} ${diskPath}`);
+      yield *ezspawn(`diskutil eraseVolume ${darwinUseHFSPlus ? 'HFS+' : 'APFS'} ${name} ${diskPath}`);
     }),
     destroy: gensync(function *(root: string, force: boolean) {
       logger.info(tips.destroy(root));
@@ -60,7 +60,7 @@ const op = (logger: Logger) => ({
     })
   },
   linux: {
-    create: gensync(function *(_name: string, root: string, bytes: number) {
+    create: gensync(function *(_name: string, root: string, bytes: number, _darwinUseHFSPlus: boolean) {
       logger.info(tips.init);
       yield *ezspawn(yield *withSudo(`mkdir -p ${root}`));
       logger.info(tips.mount);
@@ -75,7 +75,7 @@ const op = (logger: Logger) => ({
     })
   },
   [$notSupported]: {
-    create: gensync(function *(_name: string, root: string, _bytes: number) {
+    create: gensync(function *(_name: string, root: string, _bytes: number, _darwinUseHFSPlus: boolean) {
       logger.warn(`The current platform "${platform}" does not support RAM disks. A temporary directory (which may or may not exists in the RAM) is created at "${root}".`);
 
       yield *mkdir(root, { recursive: true });
@@ -97,7 +97,9 @@ export interface CreateOptions {
   /** @default true */
   quiet?: boolean,
   /** @default false */
-  throwOnNotSupportedPlatform?: boolean
+  throwOnNotSupportedPlatform?: boolean,
+  /** @default false */
+  darwinUseHFSPlus?: boolean
 }
 
 const abortNotSupported = (shouldThrow: boolean) => {
@@ -129,7 +131,8 @@ const $destroy = gensync(function *(root: string, {
 
 const $create = gensync(function *(name: string, bytes: number, {
   quiet = true,
-  throwOnNotSupportedPlatform = false
+  throwOnNotSupportedPlatform = false,
+  darwinUseHFSPlus = false
 }: CreateOptions = {}) {
   const logger = getLogger(quiet);
 
@@ -142,7 +145,7 @@ const $create = gensync(function *(name: string, bytes: number, {
         return root;
       }
 
-      yield *op(logger)[platform].create(name, root, bytes);
+      yield *op(logger)[platform].create(name, root, bytes, darwinUseHFSPlus);
 
       logger.info(`RAM disk is avaliable at ${root}`);
 
@@ -152,7 +155,7 @@ const $create = gensync(function *(name: string, bytes: number, {
     abortNotSupported(throwOnNotSupportedPlatform);
 
     root = path.join(tmpdir(), '.mocked-memdisk', name);
-    yield *op(logger)[$notSupported].create(name, root, bytes);
+    yield *op(logger)[$notSupported].create(name, root, bytes, darwinUseHFSPlus);
     return root;
   } catch {
     const errMessage = `Failed to create RAM disk at ${root}`;
