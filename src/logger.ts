@@ -1,5 +1,7 @@
 /* eslint-disable no-console -- logger */
-import { yellow, red, blue } from 'picocolors';
+import picocolors from 'picocolors';
+
+const { yellow, red, blue } = picocolors;
 
 const noop = () => {
   // noo[]
