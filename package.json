@@ -1,6 +1,6 @@
 {
   "name": "memdisk",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "A library and a CLI to create RAM disk on macOS and Linux.",
   "homepage": "https://github.com/SukkaW/memdisk",
   "repository": {
