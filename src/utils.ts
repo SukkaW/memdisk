@@ -1,7 +1,9 @@
-import whichAsync, { sync as whichSync } from 'which';
+import whichAsync from 'which';
 import gensync from 'gensync';
 import { platform } from 'node:process';
 import { isAbsolute, relative } from 'node:path';
+
+const whichSync = whichAsync.sync;
 
 let whichSudo: string | undefined | null;
 const which = gensync({
