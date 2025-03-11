@@ -1,11 +1,8 @@
 /* eslint-disable no-console -- logger */
 import picocolors from 'picocolors';
+import { noop } from 'foxts/noop';
 
 const { yellow, red, blue } = picocolors;
-
-const noop = () => {
-  // noo[]
-};
 
 export interface Logger {
   warn: (...messages: unknown[]) => void,

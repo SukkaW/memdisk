@@ -34,6 +34,7 @@
   "license": "MIT",
   "dependencies": {
     "@jsdevtools/ez-spawn": "^3.0.4",
+    "foxts": "^1.7.0",
     "gensync": "1.0.0-beta.2",
     "picocolors": "^1.0.1",
     "which": "^4.0.0"
