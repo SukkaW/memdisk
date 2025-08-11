@@ -11,7 +11,8 @@ import { tmpdir } from 'node:os';
 import gensync from 'gensync';
 
 import { extractErrorMessage, getRootFromName, withSudo } from './utils';
-import { getLogger, type Logger } from './logger';
+import { getLogger } from './logger';
+import type { Logger } from './logger';
 
 const ezspawn = gensync<[string], ezSpawn.Process>({
   sync: ezspawnSync,
@@ -41,57 +42,59 @@ export const isSupportedPlatform = (platform: string): platform is SupportedPlat
 
 const $notSupported = Symbol('not supported');
 
-const op = (logger: Logger) => ({
-  darwin: {
-    create: gensync(function *(name: string, _root: string, bytes: number, darwinUseHFSPlus: boolean) {
-      const darwinBlocks = bytes / BLOCK_SIZE;
-      logger.info(tips.init);
-      const diskPath = (yield *ezspawn(`hdiutil attach -nomount ram://${darwinBlocks}`)).stdout.trim();
-      logger.info(tips.mount);
-      yield *ezspawn(`diskutil eraseVolume ${darwinUseHFSPlus ? 'HFS+' : 'APFS'} ${name} ${diskPath}`);
-    }),
-    destroy: gensync(function *(root: string, force: boolean) {
-      logger.info(tips.destroy(root));
-      let cmd = `hdiutil detach ${root}`;
-      if (force) {
-        cmd += ' -force';
-      }
-      yield *ezspawn(cmd);
-    })
-  },
-  linux: {
-    create: gensync(function *(_name: string, root: string, bytes: number, _darwinUseHFSPlus: boolean) {
-      logger.info(tips.init);
-      yield *ezspawn(yield *withSudo(`mkdir -p ${root}`));
-      logger.info(tips.mount);
-      yield *ezspawn(yield *withSudo(`mount -t tmpfs -o size=${bytes} tmpfs ${root}`));
-    }),
-    destroy: gensync(function *(root: string, force: boolean) {
-      logger.info(tips.destroy(root));
-      const cmd = force
-        ? `umount --force ${root}`
-        : `umount ${root}`;
-      yield *ezspawn(yield *withSudo(cmd));
-    })
-  },
-  [$notSupported]: {
-    create: gensync(function *(_name: string, root: string, _bytes: number, _darwinUseHFSPlus: boolean) {
-      logger.warn(`The current platform "${platform}" does not support RAM disks. A temporary directory (which may or may not exists in the RAM) is created at "${root}".`);
+function op(logger: Logger) {
+  return {
+    darwin: {
+      create: gensync(function *(name: string, _root: string, bytes: number, darwinUseHFSPlus: boolean) {
+        const darwinBlocks = bytes / BLOCK_SIZE;
+        logger.info(tips.init);
+        const diskPath = (yield *ezspawn(`hdiutil attach -nomount ram://${darwinBlocks}`)).stdout.trim();
+        logger.info(tips.mount);
+        yield *ezspawn(`diskutil eraseVolume ${darwinUseHFSPlus ? 'HFS+' : 'APFS'} ${name} ${diskPath}`);
+      }),
+      destroy: gensync(function *(root: string, force: boolean) {
+        logger.info(tips.destroy(root));
+        let cmd = `hdiutil detach ${root}`;
+        if (force) {
+          cmd += ' -force';
+        }
+        yield *ezspawn(cmd);
+      })
+    },
+    linux: {
+      create: gensync(function *(_name: string, root: string, bytes: number, _darwinUseHFSPlus: boolean) {
+        logger.info(tips.init);
+        yield *ezspawn(yield *withSudo(`mkdir -p ${root}`));
+        logger.info(tips.mount);
+        yield *ezspawn(yield *withSudo(`mount -t tmpfs -o size=${bytes} tmpfs ${root}`));
+      }),
+      destroy: gensync(function *(root: string, force: boolean) {
+        logger.info(tips.destroy(root));
+        const cmd = force
+          ? `umount --force ${root}`
+          : `umount ${root}`;
+        yield *ezspawn(yield *withSudo(cmd));
+      })
+    },
+    [$notSupported]: {
+      create: gensync(function *(_name: string, root: string, _bytes: number, _darwinUseHFSPlus: boolean) {
+        logger.warn(`The current platform "${platform}" does not support RAM disks. A temporary directory (which may or may not exists in the RAM) is created at "${root}".`);
 
-      yield *mkdir(root, { recursive: true });
-    }),
-    destroy: gensync(function *(root: string, _force: boolean) {
-      const tipPrefix = `Current platform "${platform}" does not support RAM disks, attempted to remove the directory "${root}"`;
+        yield *mkdir(root, { recursive: true });
+      }),
+      destroy: gensync(function *(root: string, _force: boolean) {
+        const tipPrefix = `Current platform "${platform}" does not support RAM disks, attempted to remove the directory "${root}"`;
 
-      try {
-        yield *rm(root, { recursive: true, force: true });
-        logger.warn(`${tipPrefix} and successed.`);
-      } catch (e) {
-        logger.warn(`${tipPrefix} but failed` + extractErrorMessage(e));
-      }
-    })
-  }
-});
+        try {
+          yield *rm(root, { recursive: true, force: true });
+          logger.warn(`${tipPrefix} and successed.`);
+        } catch (e) {
+          logger.warn(`${tipPrefix} but failed` + extractErrorMessage(e));
+        }
+      })
+    }
+  };
+}
 
 export interface CreateOptions {
   /** @default true */
@@ -102,11 +105,11 @@ export interface CreateOptions {
   darwinUseHFSPlus?: boolean
 }
 
-const abortNotSupported = (shouldThrow: boolean) => {
+function abortNotSupported(shouldThrow: boolean) {
   if (shouldThrow) {
     throw new Error(`Unsupported platform "${platform}"`);
   }
-};
+}
 
 export interface DestroyOptions extends CreateOptions {
   force?: boolean

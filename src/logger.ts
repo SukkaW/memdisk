@@ -10,8 +10,10 @@ export interface Logger {
   info: (...messages: unknown[]) => void
 }
 
-export const getLogger = (quiet = false): Logger => ({
-  warn: quiet ? noop : (...messages: unknown[]) => console.warn(yellow('WARN') + ' ', ...messages),
-  error: quiet ? noop : (...messages: unknown[]) => console.error(red('ERROR') + ' ', ...messages),
-  info: quiet ? noop : (...messages: unknown[]) => console.info(blue('INFO') + ' ', ...messages)
-});
+export function getLogger(quiet = false): Logger {
+  return {
+    warn: quiet ? noop : (...messages: unknown[]) => console.warn(yellow('WARN') + ' ', ...messages),
+    error: quiet ? noop : (...messages: unknown[]) => console.error(red('ERROR') + ' ', ...messages),
+    info: quiet ? noop : (...messages: unknown[]) => console.info(blue('INFO') + ' ', ...messages)
+  };
+}

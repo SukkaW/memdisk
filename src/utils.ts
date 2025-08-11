@@ -19,13 +19,13 @@ export const withSudo = gensync(function *(originalCommand: string) {
   return whichSudo + ' ' + originalCommand;
 });
 
-export const getRootFromName = (name: string) => {
+export function getRootFromName(name: string) {
   return platform === 'darwin' ? `/Volumes/${name}` : `/mnt/${name}`;
-};
+}
 
 const rPureNumber = /^\d+$/;
 const rParse = /(\d+)\s*([a-z]+)/i;
-export const parseHumanReadableSize = (input: string) => {
+export function parseHumanReadableSize(input: string) {
   if (rPureNumber.test(input)) {
     return Number.parseInt(input, 10);
   }
@@ -72,14 +72,14 @@ export const parseHumanReadableSize = (input: string) => {
     default:
       throw new TypeError('Not supported unit: ' + unit);
   }
-};
+}
 
-export const isInSubDirectory = (parent: string, child: string) => {
+export function isInSubDirectory(parent: string, child: string) {
   const relativePath = relative(parent, child);
   return relativePath.length > 0 && !relativePath.startsWith('..') && !isAbsolute(relativePath);
-};
+}
 
-export const extractErrorMessage = (e: unknown) => {
+export function extractErrorMessage(e: unknown) {
   let message = '';
 
   if (typeof e === 'object' && e) {
@@ -95,4 +95,4 @@ export const extractErrorMessage = (e: unknown) => {
   }
 
   return message;
-};
+}
