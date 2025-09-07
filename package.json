@@ -23,7 +23,7 @@
   },
   "scripts": {
     "lint": "eslint --format=sukka .",
-    "build": "bunchee -m --target es2018 --dts-bundle",
+    "build": "bunchee -m --target es2018 --dts-bundle --no-sourcemap",
     "release": "bumpp -r --all --commit \"release: %s\" --tag \"%s\""
   },
   "keywords": [
