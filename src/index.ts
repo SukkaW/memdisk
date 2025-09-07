@@ -187,6 +187,9 @@ export const create: Create = {
   errback: (...args) => $create.errback.apply(null, args)
 };
 
+export const createSync: Create['sync'] = (...args) => $create.sync.apply(null, args);
+export const createAsync: Create['async'] = (...args) => $create.async.apply(null, args);
+
 interface Destroy {
   sync: (root: string, options?: DestroyOptions) => void,
   async: (root: string, options?: DestroyOptions) => Promise<void>,
@@ -198,3 +201,6 @@ export const destroy: Destroy = {
   async: (...args) => $destroy.async.apply(null, args),
   errback: (...args) => $destroy.errback.apply(null, args)
 };
+
+export const destroySync: Destroy['sync'] = (...args) => $destroy.sync.apply(null, args);
+export const destroyAsync: Destroy['async'] = (...args) => $destroy.async.apply(null, args);
