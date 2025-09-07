@@ -34,24 +34,24 @@
   "license": "MIT",
   "dependencies": {
     "@jsdevtools/ez-spawn": "^3.0.4",
-    "foxts": "^3.10.0",
+    "foxts": "^3.13.0",
     "gensync": "1.0.0-beta.2",
-    "picocolors": "^1.1.1",
-    "which": "^4.0.0"
+    "picocolors": "^1.1.1"
   },
   "devDependencies": {
     "@commander-js/extra-typings": "^12.1.0",
     "@eslint-sukka/node": "^6.23.1",
     "@types/gensync": "^1.0.4",
-    "@types/node": "^20.19.10",
+    "@types/node": "^20.19.13",
     "@types/which": "^3.0.4",
-    "bumpp": "^10.2.2",
+    "bumpp": "^10.2.3",
     "bunchee": "^6.6.0",
     "commander": "^12.1.0",
-    "eslint": "^9.33.0",
+    "eslint": "^9.35.0",
     "eslint-config-sukka": "^6.23.1",
     "eslint-formatter-sukka": "^6.23.1",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "which": "^5.0.0"
   },
-  "packageManager": "pnpm@10.14.0"
+  "packageManager": "pnpm@10.15.1"
 }
