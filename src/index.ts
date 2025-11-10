@@ -10,7 +10,10 @@ import { platform } from 'node:process';
 import { tmpdir } from 'node:os';
 import gensync from 'gensync';
 
-import { extractErrorMessage, getRootFromName, withSudo } from './utils';
+import { getRootFromName, withSudo } from './utils';
+
+import { extractErrorMessage } from 'foxts/extract-error-message';
+
 import { getLogger } from './logger';
 import type { Logger } from './logger';
 
