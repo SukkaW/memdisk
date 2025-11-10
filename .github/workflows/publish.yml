@@ -20,24 +20,25 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           check-latest: true
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
+      - run: npm install -g npm
       - run: pnpm install
-      - run: pnpm run build
       - run: pnpm run lint
+      - run: pnpm run build
       - name: Publish
         run: |
           if git log -1 --pretty=%B | grep "^release: [0-9]\+\.[0-9]\+\.[0-9]\+$";
           then
-            pnpm -r publish --provenance --access public
+            pnpm publish -r --provenance --access public
           elif git log -1 --pretty=%B | grep "^release: [0-9]\+\.[0-9]\+\.[0-9]\+";
           then
-            pnpm -r publish --provenance --access public --tag next
+            pnpm publish -r --provenance --access public --tag next
           else
             echo "Not a release, skipping publish"
           fi
