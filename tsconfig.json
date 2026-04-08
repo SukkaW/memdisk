@@ -3,6 +3,9 @@
     "target": "es2020",
     "module": "es2020",
     "moduleResolution": "bundler",
+    "types": [
+      "node"
+    ],
     "resolveJsonModule": true,
     "isolatedModules": true,
     "esModuleInterop": true,

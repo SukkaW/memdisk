@@ -3,8 +3,8 @@ import { mkdir as mkdirAsync, rm as rmAsync } from 'node:fs/promises';
 
 import path from 'node:path';
 
-import { sync as ezspawnSync, async as ezspawnAsync } from '@jsdevtools/ez-spawn';
-import type ezSpawn from '@jsdevtools/ez-spawn';
+import { xSync, x } from 'tinyexec';
+import type { Output as TinyExecOutput } from 'tinyexec';
 
 import { platform } from 'node:process';
 import { tmpdir } from 'node:os';
@@ -17,9 +17,10 @@ import { extractErrorMessage } from 'foxts/extract-error-message';
 import { getLogger } from './logger';
 import type { Logger } from './logger';
 
-const ezspawn = gensync<[string], ezSpawn.Process>({
-  sync: ezspawnSync,
-  async: ezspawnAsync
+const tinyexec = gensync<[string], TinyExecOutput>({
+  sync: xSync,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- gensync.AsyncOptions does not support partial arguments over interface function
+  async: x as any
 });
 
 const BLOCK_SIZE = 512;
@@ -51,9 +52,9 @@ function op(logger: Logger) {
       create: gensync(function *(name: string, _root: string, bytes: number, darwinUseHFSPlus: boolean) {
         const darwinBlocks = bytes / BLOCK_SIZE;
         logger.info(tips.init);
-        const diskPath = (yield *ezspawn(`hdiutil attach -nomount ram://${darwinBlocks}`)).stdout.trim();
+        const diskPath = (yield *tinyexec(`hdiutil attach -nomount ram://${darwinBlocks}`)).stdout.trim();
         logger.info(tips.mount);
-        yield *ezspawn(`diskutil eraseVolume ${darwinUseHFSPlus ? 'HFS+' : 'APFS'} ${name} ${diskPath}`);
+        yield *tinyexec(`diskutil eraseVolume ${darwinUseHFSPlus ? 'HFS+' : 'APFS'} ${name} ${diskPath}`);
       }),
       destroy: gensync(function *(root: string, force: boolean) {
         logger.info(tips.destroy(root));
@@ -61,22 +62,22 @@ function op(logger: Logger) {
         if (force) {
           cmd += ' -force';
         }
-        yield *ezspawn(cmd);
+        yield *tinyexec(cmd);
       })
     },
     linux: {
       create: gensync(function *(_name: string, root: string, bytes: number, _darwinUseHFSPlus: boolean) {
         logger.info(tips.init);
-        yield *ezspawn(yield *withSudo(`mkdir -p ${root}`));
+        yield *tinyexec(yield *withSudo(`mkdir -p ${root}`));
         logger.info(tips.mount);
-        yield *ezspawn(yield *withSudo(`mount -t tmpfs -o size=${bytes} tmpfs ${root}`));
+        yield *tinyexec(yield *withSudo(`mount -t tmpfs -o size=${bytes} tmpfs ${root}`));
       }),
       destroy: gensync(function *(root: string, force: boolean) {
         logger.info(tips.destroy(root));
         const cmd = force
           ? `umount --force ${root}`
           : `umount ${root}`;
-        yield *ezspawn(yield *withSudo(cmd));
+        yield *tinyexec(yield *withSudo(cmd));
       })
     },
     [$notSupported]: {
