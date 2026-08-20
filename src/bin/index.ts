@@ -1,11 +1,11 @@
 import { Command } from '@commander-js/extra-typings';
 import { name as packageName, version as packageVersion } from '../../package.json';
-import { getRootFromName, isInSubDirectory, parseHumanReadableSize } from '../utils';
+import { getRootFromName, isInSubdirectory, parseHumanReadableSize } from '../utils';
 import { isAbsolute } from 'node:path';
 import { create, destroy } from '..';
 import { cwd } from 'node:process';
 
-(() => {
+{
   const program = (new Command(packageName))
     .version(packageVersion)
     .description('CLI to create and destroy RAM disks')
@@ -20,11 +20,11 @@ import { cwd } from 'node:process';
     .argument('[name]', 'Name of the RAM disk, default is "ramdisk"', 'ramdisk')
     .option('--darwin-use-hfs-plus', 'Use HFS+ instead of APFS on macOS', false)
     .action((inputSize: string, name: string, { darwinUseHfsPlus: darwinUseHFSPlus }) => {
-      const size = parseHumanReadableSize(inputSize);
-
       if (isAbsolute(name)) {
         throw new TypeError('[name] must not be a path');
       }
+
+      const size = parseHumanReadableSize(inputSize);
 
       const { quiet, throwOnNotSupportedPlatform } = program.opts();
       create.sync(name, size, { quiet, throwOnNotSupportedPlatform, darwinUseHFSPlus });
@@ -38,7 +38,7 @@ import { cwd } from 'node:process';
     .action((nameOrPath: string, { force }) => {
       const path = isAbsolute(nameOrPath) ? nameOrPath : getRootFromName(nameOrPath);
 
-      if (isInSubDirectory(path, cwd())) {
+      if (isInSubdirectory(path, cwd())) {
         throw new Error('Cannot perform destroy as the current working directory is in the RAM disk to be destroyed');
       }
 
@@ -51,4 +51,4 @@ import { cwd } from 'node:process';
     .showSuggestionAfterError();
 
   program.parse();
-})();
+}

@@ -74,7 +74,7 @@ export function parseHumanReadableSize(input: string) {
   }
 }
 
-export function isInSubDirectory(parent: string, child: string) {
+export function isInSubdirectory(parent: string, child: string) {
   const relativePath = relative(parent, child);
   return relativePath.length > 0 && !relativePath.startsWith('..') && !isAbsolute(relativePath);
 }
