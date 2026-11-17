@@ -19,8 +19,7 @@ import type { Logger } from './logger';
 
 const tinyexec = gensync<[string, readonly string[]], TinyExecOutput>({
   sync: (command, args) => xSync(command, args, { throwOnError: true }),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- gensync.AsyncOptions does not support partial arguments over interface function
-  async: ((command: string, args: readonly string[]) => x(command, args, { throwOnError: true })) as any
+  async: async (command, args) => x(command, args, { throwOnError: true })
 });
 
 const BLOCK_SIZE = 512;
