@@ -17,10 +17,10 @@ import { extractErrorMessage } from 'foxts/extract-error-message';
 import { getLogger } from './logger';
 import type { Logger } from './logger';
 
-const tinyexec = gensync<[string], TinyExecOutput>({
-  sync: xSync,
+const tinyexec = gensync<[string, readonly string[]], TinyExecOutput>({
+  sync: (command, args) => xSync(command, args, { throwOnError: true }),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- gensync.AsyncOptions does not support partial arguments over interface function
-  async: x as any
+  async: ((command: string, args: readonly string[]) => x(command, args, { throwOnError: true })) as any
 });
 
 const BLOCK_SIZE = 512;
@@ -52,32 +52,32 @@ function op(logger: Logger) {
       create: gensync(function *(name: string, _root: string, bytes: number, darwinUseHFSPlus: boolean) {
         const darwinBlocks = bytes / BLOCK_SIZE;
         logger.info(tips.init);
-        const diskPath = (yield *tinyexec(`hdiutil attach -nomount ram://${darwinBlocks}`)).stdout.trim();
+        const diskPath = (yield *tinyexec('hdiutil', ['attach', '-nomount', `ram://${darwinBlocks}`])).stdout.trim();
         logger.info(tips.mount);
-        yield *tinyexec(`diskutil eraseVolume ${darwinUseHFSPlus ? 'HFS+' : 'APFS'} ${name} ${diskPath}`);
+        yield *tinyexec('diskutil', ['eraseVolume', darwinUseHFSPlus ? 'HFS+' : 'APFS', name, diskPath]);
       }),
       destroy: gensync(function *(root: string, force: boolean) {
         logger.info(tips.destroy(root));
-        let cmd = `hdiutil detach ${root}`;
+        const args = ['detach', root];
         if (force) {
-          cmd += ' -force';
+          args.push('-force');
         }
-        yield *tinyexec(cmd);
+        yield *tinyexec('hdiutil', args);
       })
     },
     linux: {
       create: gensync(function *(_name: string, root: string, bytes: number, _darwinUseHFSPlus: boolean) {
         logger.info(tips.init);
-        yield *tinyexec(yield *withSudo(`mkdir -p ${root}`));
+        yield *tinyexec(...yield *withSudo('mkdir', ['-p', root]));
         logger.info(tips.mount);
-        yield *tinyexec(yield *withSudo(`mount -t tmpfs -o size=${bytes} tmpfs ${root}`));
+        yield *tinyexec(...yield *withSudo('mount', ['-t', 'tmpfs', '-o', `size=${bytes}`, 'tmpfs', root]));
       }),
       destroy: gensync(function *(root: string, force: boolean) {
         logger.info(tips.destroy(root));
-        const cmd = force
-          ? `umount --force ${root}`
-          : `umount ${root}`;
-        yield *tinyexec(yield *withSudo(cmd));
+        const args = force
+          ? ['--force', root]
+          : [root];
+        yield *tinyexec(...yield *withSudo('umount', args));
       })
     },
     [$notSupported]: {
@@ -164,7 +164,7 @@ const $create = gensync(function *(name: string, bytes: number, {
     root = path.join(tmpdir(), '.mocked-memdisk', name);
     yield *op(logger)[$notSupported].create(name, root, bytes, darwinUseHFSPlus);
     return root;
-  } catch {
+  } catch (e) {
     const errMessage = `Failed to create RAM disk at ${root}`;
 
     if (existsSync(root)) {
@@ -173,7 +173,7 @@ const $create = gensync(function *(name: string, bytes: number, {
       yield *$destroy(root, { quiet, throwOnNotSupportedPlatform });
     }
 
-    throw new Error(errMessage);
+    throw Object.assign(new Error(errMessage), { cause: e });
   }
 });
 

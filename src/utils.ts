@@ -9,14 +9,14 @@ const which = gensync({
   async: whichAsync
 });
 
-export const withSudo = gensync(function *(originalCommand: string) {
+export const withSudo = gensync(function *(command: string, args: readonly string[]) {
   if (whichSudo === undefined) {
     whichSudo = yield *which('sudo', { nothrow: true });
   }
   if (whichSudo === null) {
-    return originalCommand;
+    return [command, args] as const;
   }
-  return whichSudo + ' ' + originalCommand;
+  return [whichSudo, [command, ...args]] as const;
 });
 
 export function getRootFromName(name: string) {
